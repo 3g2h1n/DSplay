@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="studio-token" content="{{TOKEN}}">
+<title>DSplay Studio</title>
+<link rel="icon" href="/static/icon.svg">
+<link rel="stylesheet" href="/static/app.css">
+</head>
+<body>
+<div class="shell">
+  <aside class="side">
+    <div class="brand">
+      <img src="/static/icon.svg" alt="" width="36" height="36">
+      <div>
+        <div class="brand-name">DSplay Studio</div>
+        <div class="brand-sub" data-t="app_sub">DSi SD kart hazırlayıcı</div>
+      </div>
+    </div>
+    <nav class="nav" id="nav">
+      <button data-page="card" class="active"><span class="ico">▣</span><span data-t="nav_card">SD kart</span></button>
+      <button data-page="setup"><span class="ico">⬇</span><span data-t="nav_setup">Kurulum</span></button>
+      <button data-page="profiles"><span class="ico">☺</span><span data-t="nav_profiles">Profiller</span></button>
+      <button data-page="themes"><span class="ico">◐</span><span data-t="nav_themes">Temalar</span></button>
+      <button data-page="games"><span class="ico">✚</span><span data-t="nav_games">Oyunlar</span></button>
+      <button data-page="store"><span class="ico">◆</span><span data-t="nav_store">Mağaza</span></button>
+      <button data-page="covers"><span class="ico">▤</span><span data-t="nav_covers">Kapaklar</span></button>
+      <button data-page="sounds"><span class="ico">♪</span><span data-t="nav_sounds">Sesler</span></button>
+      <button data-page="saves"><span class="ico">⟲</span><span data-t="nav_saves">Kayıtlar</span></button>
+      <button data-page="wifi"><span class="ico">≋</span><span data-t="nav_wifi">Kablosuz</span></button>
+      <button data-page="pad"><span class="ico">✛</span><span data-t="nav_pad">Kumanda</span></button>
+    </nav>
+    <div class="side-foot">
+      <select id="uiLang" aria-label="Language">
+        <option value="tr">Türkçe</option><option value="en">English</option><option value="es">Español</option>
+        <option value="de">Deutsch</option><option value="fr">Français</option><option value="pt">Português</option>
+        <option value="ru">Русский</option><option value="az">Azərbaycan</option>
+      </select>
+      <div class="ver">v{{VERSION}}</div>
+    </div>
+  </aside>
+
+  <main class="main">
+    <header class="top">
+      <div class="drive-pill" id="drivePill">
+        <span class="dot" id="driveDot"></span>
+        <select id="driveSelect"></select>
+        <button class="icon-btn" id="btnRefresh" title="↻">↻</button>
+      </div>
+      <button class="btn ghost" id="btnEject" data-t="eject" disabled>Güvenle çıkar</button>
+    </header>
+
+    <!-- ============ CARD ============ -->
+    <section class="page active" id="page-card">
+      <h1 data-t="card_title">SD kart</h1>
+      <div class="grid2">
+        <div class="panel">
+          <div class="drive-big" id="driveBig">
+            <div class="drive-name" id="driveName">—</div>
+            <div class="bar"><div id="driveBar"></div></div>
+            <div class="muted" id="driveSpace"></div>
+            <div class="chip" id="fsChip"></div>
+          </div>
+          <div class="row gap">
+            <button class="btn danger" id="btnFormat" data-t="format_btn" disabled>FAT32 olarak formatla</button>
+          </div>
+          <details class="manual">
+            <summary data-t="manual">Klasör yolunu elle gir</summary>
+            <div class="row gap">
+              <input id="manualPath" type="text" spellcheck="false" data-tp="manual_ph" placeholder="/Volumes/SDCARD">
+              <button class="btn" id="btnManual" data-t="use">Kullan</button>
+            </div>
+          </details>
+        </div>
+        <div class="panel">
+          <h2 data-t="status_title">Kart durumu</h2>
+          <div id="statusBox" class="status-list"><div class="muted" data-t="no_card">Önce bir SD kart seçin</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ SETUP ============ -->
+    <section class="page" id="page-setup">
+      <h1 data-t="setup_title">DSplay kurulumu</h1>
+      <div class="grid2">
+        <div class="panel">
+          <p data-t="setup_desc"></p>
+          <label><span data-t="profile">Profil adı</span><input id="profileName" maxlength="19" type="text" placeholder="Oyuncu"></label>
+          <div class="row gap">
+            <label class="grow"><span data-t="console_lang">Konsol dili</span>
+              <select id="consoleLang">
+                <option value="tr">Türkçe</option><option value="en">English</option><option value="es">Español</option>
+                <option value="de">Deutsch</option><option value="fr">Français</option><option value="az">Azərbaycanca</option>
+              </select></label>
+            <label class="grow"><span data-t="theme">Tema</span>
+              <select id="consoleTheme"><option value="0" data-t="theme_dark">Koyu</option><option value="1" data-t="theme_light">Açık</option></select></label>
+          </div>
+          <div class="safe-box">
+            <div class="safe-title">🛡 <span data-t="safe_title">Kayıtların güvende</span></div>
+            <div class="muted small" data-t="safe_install_desc"></div>
+            <label class="switch-row mt-s"><input type="checkbox" id="fullBackup"> <span id="fullBackupLabel" data-t="full_backup_cb">Önce kartın tamamını bilgisayara yedekle</span></label>
+          </div>
+          <button class="btn primary big" id="btnInstall" data-t="install_btn" disabled>Kur / Güncelle</button>
+          <div class="progress hidden" id="installProg"><div></div></div>
+          <div class="note" id="payloadNote"></div>
+        </div>
+        <div class="panel">
+          <h2 data-t="bios_title">GBA BIOS</h2>
+          <p class="muted" data-t="bios_desc"></p>
+          <div class="row gap">
+            <button class="btn" id="btnBios" data-t="bios_btn" disabled>bios.bin seç</button>
+            <span class="chip" id="biosChip"></span>
+          </div>
+          <input type="file" id="biosInput" hidden>
+          <h2 class="mt" data-t="unlaunch_title">Otomatik açılış (Unlaunch)</h2>
+          <ol class="steps">
+            <li data-t="ul1"></li><li data-t="ul2"></li><li data-t="ul3"></li><li data-t="ul4"></li>
+          </ol>
+        </div>
+      </div>
+      <div class="panel mt">
+        <h2 data-t="credits_title">Açık kaynak bileşenler</h2>
+        <ul class="credits">
+          <li><a href="https://github.com/DS-Homebrew/nds-bootstrap" target="_blank" rel="noopener">nds-bootstrap</a> · DS-Homebrew · GPL-3.0</li>
+          <li><a href="https://github.com/DS-Homebrew/TWiLightMenu" target="_blank" rel="noopener">TWiLight Menu++</a> · DS-Homebrew · GPL-3.0</li>
+          <li><a href="https://github.com/Gericom/GBARunner2" target="_blank" rel="noopener">GBARunner2</a> · Gericom · GPL-2.0</li>
+          <li>GameYob, nesDS, SNEmulDS, PicoDriveTWL, jEnesisDS, S8DS · TWiLight Menu++</li>
+          <li><a href="https://github.com/devkitPro" target="_blank" rel="noopener">devkitPro</a> · libnds, calico, libfat</li>
+          <li><a href="https://rsms.me/inter/" target="_blank" rel="noopener">Inter</a> · Rasmus Andersson · SIL OFL 1.1</li>
+          <li><a href="https://www.gametdb.com" target="_blank" rel="noopener">GameTDB</a>, <a href="https://github.com/libretro-thumbnails" target="_blank" rel="noopener">libretro-thumbnails</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ============ PROFILES ============ -->
+    <section class="page" id="page-profiles">
+      <h1 data-t="profiles_title">Profiller</h1>
+      <div class="panel">
+        <p class="muted" data-t="profiles_desc"></p>
+        <div class="row gap wrap">
+          <label class="switch-row grow"><input type="checkbox" id="loginToggle" disabled> <span data-t="login_screen">Açılışta giriş ekranını göster</span></label>
+        </div>
+        <div class="row gap wrap mt-s">
+          <input id="newProfileName" type="text" maxlength="19" data-tp="new_profile_ph" placeholder="Yeni profil adı" class="grow" style="max-width:280px">
+          <button class="btn primary" id="btnNewProfile" data-t="new_profile_btn" disabled>Profil ekle</button>
+          <span class="muted small" id="profileCount"></span>
+        </div>
+      </div>
+      <div class="profile-grid mt" id="profileGrid"></div>
+      <input type="file" id="profilePicInput" accept="image/*" hidden>
+    </section>
+
+    <!-- ============ THEMES ============ -->
+    <section class="page" id="page-themes">
+      <h1 data-t="themes_title">Temalar</h1>
+      <div class="panel">
+        <p class="muted" data-t="themes_desc"></p>
+        <label class="grow" style="max-width:320px"><span data-t="themes_for">Profil</span>
+          <select id="themeProfile"></select></label>
+      </div>
+      <div class="theme-grid mt" id="themeGrid"></div>
+
+      <div class="panel mt">
+        <h2 data-t="boot_title">Kendi açılış ekranın</h2>
+        <p class="muted" data-t="boot_desc"></p>
+        <div class="boot-editor">
+          <div class="boot-preview" id="bootPreview">
+            <canvas id="bootTop" width="256" height="192"></canvas>
+            <canvas id="bootBot" width="256" height="192"></canvas>
+          </div>
+          <div class="boot-props">
+            <label><span data-t="boot_layout">Resim</span>
+              <select id="bootLayout">
+                <option value="top" data-t="boot_l_top">Üst ekran (alt ekran siyah)</option>
+                <option value="span" data-t="boot_l_span">Tek resim, iki ekrana yayılsın</option>
+                <option value="two" data-t="boot_l_two">İki ekrana ayrı resim</option>
+              </select></label>
+            <div class="row gap wrap">
+              <button class="btn" id="btnBootPic" data-t="boot_pic">Resim seç</button>
+              <button class="btn hidden" id="btnBootPic2" data-t="boot_pic2">Alt ekran resmi</button>
+            </div>
+            <div class="row gap wrap mt-s">
+              <button class="btn" id="btnBootSound" data-t="boot_sound">Ses seç</button>
+              <button class="btn ghost small-btn hidden" id="btnBootPlay">▶</button>
+              <button class="btn ghost small-btn hidden" id="btnBootNoSound" data-t="boot_nosound">Sesi kaldır</button>
+              <span class="muted small" id="bootSoundInfo"></span>
+            </div>
+            <div class="row gap">
+              <label class="grow"><span data-t="boot_len">Süre</span>
+                <select id="bootMs"><option value="1500">1,5 sn</option><option value="2500" selected>2,5 sn</option><option value="4000">4 sn</option></select></label>
+              <label class="grow"><span data-t="boot_style">Geçiş</span>
+                <select id="bootStyle"><option value="fade" data-t="boot_s_fade">Karanlıktan açılsın</option><option value="flash" data-t="boot_s_flash">Beyazdan açılsın</option></select></label>
+            </div>
+            <div class="row gap wrap mt-s">
+              <button class="btn primary" id="btnBootSave" data-t="boot_save" disabled>Karta yaz ve kullan</button>
+              <button class="btn ghost danger-t" id="btnBootRemove" data-t="boot_remove">Kaldır</button>
+            </div>
+            <div class="muted small mt-s" id="bootNote"></div>
+          </div>
+        </div>
+        <input type="file" id="bootPicInput" accept="image/*" hidden>
+        <input type="file" id="bootSoundInput" accept="audio/*,.wav,.mp3,.m4a,.ogg" hidden>
+      </div>
+
+      <div class="panel mt">
+        <h2 data-t="photos_title">Fotoğraflar</h2>
+        <p class="muted" data-t="photos_desc"></p>
+        <div class="row gap wrap">
+          <label class="grow" style="max-width:260px"><span data-t="photos_album">Albüm adı</span>
+            <input type="text" id="photoAlbum" maxlength="40" placeholder="Studio"></label>
+          <button class="btn primary" id="btnPhotoFolder" data-t="photos_folder" disabled>Klasör seç ve aktar</button>
+          <button class="btn" id="btnPhotoFiles" data-t="photos_files" disabled>Fotoğraf seç</button>
+        </div>
+        <div class="progress hidden mt-s" id="photoProg"><div></div></div>
+        <div class="muted small mt-s" id="photoNote"></div>
+        <input type="file" id="photoFolderInput" webkitdirectory directory multiple hidden>
+        <input type="file" id="photoFilesInput" accept="image/*" multiple hidden>
+      </div>
+    </section>
+
+    <!-- ============ GAMES ============ -->
+    <section class="page" id="page-games">
+      <h1 data-t="games_title">Oyun ekle</h1>
+      <div class="panel">
+        <div class="drop" id="drop">
+          <div class="drop-ico">✚</div>
+          <div class="drop-title" data-t="drop">Oyunları buraya sürükleyin</div>
+          <div class="muted" data-t="drop_sub"></div>
+          <div class="row gap center mt">
+            <button class="btn" id="btnFiles" data-t="pick_files">Dosya seç</button>
+            <button class="btn" id="btnFolder" data-t="pick_folder">Klasör seç</button>
+          </div>
+          <input type="file" id="fileInput" multiple hidden>
+          <input type="file" id="folderInput" webkitdirectory hidden>
+        </div>
+        <div class="row gap wrap mt">
+          <span class="muted" data-t="nds_folders">DS oyunlarını klasörle</span>
+          <div class="seg" id="modeSeg">
+            <button data-mode="flat" class="on" data-t="mode_flat">Klasörsüz</button>
+            <button data-mode="series" data-t="mode_series">Seriye göre</button>
+            <button data-mode="alphabet" data-t="mode_alpha">A–Z</button>
+          </div>
+          <span class="muted small" data-t="mode_hint"></span>
+        </div>
+        <div class="table-wrap hidden" id="tableWrap">
+          <table>
+            <thead><tr><th></th><th data-t="col_game">Oyun</th><th data-t="col_system">Sistem</th><th data-t="col_size">Boyut</th><th data-t="col_state">Durum</th></tr></thead>
+            <tbody id="gameRows"></tbody>
+          </table>
+        </div>
+        <div class="row gap mt">
+          <button class="btn primary big" id="btnCopy" disabled>—</button>
+          <button class="btn ghost" id="btnRemoveBad" data-t="remove_bad">Bozuk ve kopyaları çıkar</button>
+          <button class="btn ghost" id="btnClear" data-t="clear">Listeyi temizle</button>
+        </div>
+        <div class="progress hidden" id="copyProg"><div></div></div>
+      </div>
+      <div class="panel mt">
+        <h2 data-t="library">Karttaki kütüphane</h2>
+        <div id="libBox" class="chips"></div>
+      </div>
+      <div class="panel mt">
+        <h2 data-t="cheats_title">Hileler (Action Replay)</h2>
+        <p class="muted" data-t="cheats_desc"></p>
+        <div class="row gap wrap">
+          <button class="btn" id="btnCheatsDl" data-t="cheats_dl" disabled>İnternetten indir</button>
+          <button class="btn ghost" id="btnCheatsFile" data-t="cheats_file" disabled>Dosya seç</button>
+          <span class="chip" id="cheatsChip"></span>
+        </div>
+        <input type="file" id="cheatsInput" accept=".dat" hidden>
+        <div class="progress hidden" id="cheatsProg"><div></div></div>
+        <div class="muted small mt" id="cheatsNote"></div>
+      </div>
+    </section>
+
+    <!-- ============ STORE ============ -->
+    <section class="page" id="page-store">
+      <h1><span data-t="store_title">Mağaza</span> <span class="chip warn" data-t="store_beta">Beta · deneysel</span></h1>
+      <div class="panel">
+        <p class="muted" data-t="store_desc"></p>
+        <div class="row gap wrap">
+          <input type="text" id="storeSearch" data-tp="store_search" placeholder="Ara…" style="max-width:260px">
+          <div class="seg" id="storeSeg">
+            <button data-cat="0" class="on" data-t="store_all">Popüler</button>
+            <button data-cat="1" data-t="store_games">Oyunlar</button>
+            <button data-cat="2" data-t="store_tools">Araçlar</button>
+            <button data-cat="3" data-t="store_emus">Emülatörler</button>
+            <button data-cat="4" data-t="store_apps">Uygulamalar</button>
+          </div>
+          <button class="btn ghost" id="btnStoreRefresh" data-t="store_refresh">Yenile</button>
+          <span class="chip" id="storeChip"></span>
+        </div>
+        <div class="progress hidden" id="storeProg"><div></div></div>
+      </div>
+      <div class="store-grid mt" id="storeGrid"></div>
+      <p class="muted small mt" data-t="store_note"></p>
+    </section>
+
+    <!-- ============ COVERS ============ -->
+    <section class="page" id="page-covers">
+      <h1 data-t="covers_title">Kapak resimleri</h1>
+      <div class="panel">
+        <p data-t="covers_desc"></p>
+        <div class="row gap">
+          <button class="btn primary" id="btnCovers" data-t="covers_btn" disabled>Eksik kapakları indir</button>
+          <button class="btn ghost" id="btnCoversForce" data-t="covers_force" disabled>Hepsini yeniden indir</button>
+          <span class="chip" id="coversChip"></span>
+        </div>
+        <div class="progress hidden" id="coversProg"><div></div></div>
+        <div class="muted small mt" id="coversNote"></div>
+      </div>
+    </section>
+
+    <!-- ============ SOUNDS ============ -->
+    <section class="page" id="page-sounds">
+      <h1 data-t="sounds_title">Ses paketi</h1>
+      <div class="panel">
+        <p data-t="sounds_desc"></p>
+        <div class="sfx-grid" id="sfxGrid"></div>
+        <div class="row gap mt">
+          <button class="btn primary" id="btnSfx" data-t="sounds_btn" disabled>WAV dosyaları seç</button>
+          <button class="btn" id="btnSfxClassic" data-t="sounds_classic" disabled>Klasik DSi seslerini indir</button>
+          <button class="btn ghost" id="btnSfxClear" data-t="sounds_clear" disabled>Özel sesleri kaldır</button>
+        </div>
+        <input type="file" id="sfxInput" accept=".wav,audio/wav" multiple hidden>
+      </div>
+    </section>
+
+    <!-- ============ SAVES ============ -->
+    <section class="page" id="page-saves">
+      <h1 data-t="saves_title">Kayıt yedekleri</h1>
+      <div class="panel">
+        <h2 data-t="snap_title">Kart yedekleri ve geri dönüş</h2>
+        <p class="muted" data-t="snap_desc"></p>
+        <div class="row gap wrap">
+          <button class="btn danger" id="btnUninstall" data-t="uninstall_btn" disabled>DSplay'i kaldır, kartı eski haline getir</button>
+          <button class="btn" id="btnFullSnap" data-t="full_snap_btn" disabled>Kartın tam yedeğini al</button>
+          <span class="muted small" id="snapSize"></span>
+        </div>
+        <div class="progress hidden" id="snapProg"><div></div></div>
+        <div class="snap-list mt" id="snapList"></div>
+        <div class="note" id="snapNote"></div>
+      </div>
+      <div class="panel mt">
+        <h2 data-t="saves_zip_title">Yalnızca kayıtlar</h2>
+        <p data-t="saves_desc"></p>
+        <div class="row gap">
+          <button class="btn primary" id="btnBackup" data-t="backup_btn" disabled>Kayıtları yedekle</button>
+          <button class="btn" id="btnRestore" data-t="restore_btn" disabled>Yedekten geri yükle</button>
+        </div>
+        <input type="file" id="restoreInput" accept=".zip" hidden>
+        <div class="muted mt" id="savesNote"></div>
+      </div>
+    </section>
+    <!-- ============ WIRELESS ============ -->
+    <section class="page" id="page-wifi">
+      <h1 data-t="wifi_title">Kablosuz aktarım</h1>
+      <div class="panel">
+        <div class="row gap wrap"><span class="chip" id="wifiChip"></span><span class="muted small grow" id="wifiHint"></span></div>
+      </div>
+      <div class="grid2 mt">
+        <div class="panel">
+          <h2 data-t="wifi_games">Oyun gönder</h2>
+          <p class="muted small" data-t="wifi_games_desc"></p>
+          <div class="drop" id="wifiDrop">
+            <div class="drop-ico">≋</div>
+            <div class="drop-title" data-t="wifi_drop">Oyunları buraya bırak</div>
+            <button class="btn mt-s" id="btnWifiPick" data-t="wifi_pick">Dosya seç</button>
+          </div>
+          <input type="file" id="wifiInput" multiple hidden>
+          <div class="progress hidden" id="wifiProg"><div></div></div>
+          <div class="note" id="wifiNote"></div>
+        </div>
+        <div class="panel">
+          <h2 data-t="wifi_more">Kayıtlar ve kapaklar</h2>
+          <p class="muted small" data-t="wifi_more_desc"></p>
+          <div class="row gap wrap">
+            <button class="btn primary" id="btnWifiSaves" data-t="wifi_saves">Kayıtları kablosuz yedekle</button>
+            <button class="btn" id="btnWifiCovers" data-t="wifi_covers">Kapakları gönder</button>
+          </div>
+          <div class="progress hidden" id="wifiProg2"><div></div></div>
+          <div class="note" id="wifiNote2"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============ CONTROLLER ============ -->
+    <section class="page" id="page-pad">
+      <h1 data-t="pad_title">Kumanda</h1>
+      <div class="grid2">
+        <div class="panel">
+          <h2 data-t="pad_conn">Bağlantı</h2>
+          <div class="row gap wrap">
+            <span class="chip" id="padRun"></span>
+            <span class="grow"></span>
+            <button class="btn small-btn" id="btnPadRun"></button>
+          </div>
+          <div class="note" id="padHint"></div>
+          <div class="pad-devs mt" id="padDevs"></div>
+          <div class="row gap wrap mt">
+            <input id="padCode" type="text" inputmode="numeric" maxlength="4" placeholder="0000" class="pad-code">
+            <input id="padIp" type="text" inputmode="decimal" maxlength="15" data-tp="pad_ip_ph" placeholder="DSi IP" class="pad-ip">
+            <button class="btn primary" id="btnPadPair" data-t="pad_pair">Eşleştir</button>
+          </div>
+          <div class="muted small mt-s" data-t="pad_pair_hint"></div>
+          <div class="muted small mt-s" id="padDiag"></div>
+          <div class="pad-live mt" id="padLive"></div>
+        </div>
+        <div class="panel">
+          <h2 data-t="pad_wifi">Konsolun Wi-Fi ağı</h2>
+          <p class="muted small" data-t="pad_wifi_desc"></p>
+          <label><span data-t="pad_ssid">Ağ adı (SSID)</span><input id="padSsid" type="text" maxlength="32" autocomplete="off"></label>
+          <label><span data-t="pad_pass">Şifre</span><input id="padPass" type="password" maxlength="63" autocomplete="new-password" class="pw"></label>
+          <div class="row gap"><button class="btn" id="btnPadWifi" data-t="pad_wifi_save" disabled>Karta yaz</button><span class="muted small" id="padWifiNote"></span></div>
+        </div>
+      </div>
+
+      <div class="panel mt">
+        <h2 data-t="pad_presets">Hazır düzenler</h2>
+        <div class="chips" id="padPresets"></div>
+        <label class="pad-speed"><span data-t="pad_speed">Fare hızı</span><input type="range" id="padSpeed" min="0.2" max="4" step="0.1"></label>
+      </div>
+
+      <div class="panel mt">
+        <h2 data-t="pad_keys">Konsolun tuşları</h2>
+        <p class="muted small" data-t="pad_keys_desc"></p>
+        <div class="pad-keys" id="padKeys"></div>
+      </div>
+
+      <div class="panel mt">
+        <h2 data-t="pad_touch">Dokunmatik ekran</h2>
+        <p class="muted small" data-t="pad_touch_desc"></p>
+        <div class="row gap wrap">
+          <div class="seg" id="padPages"></div>
+          <button class="btn ghost small-btn" id="btnPadPageAdd">+ <span data-t="pad_page">Sayfa</span></button>
+          <button class="btn ghost small-btn" id="btnPadPageRen" data-t="pad_page_rename">Adını değiştir</button>
+          <button class="btn ghost small-btn danger-t" id="btnPadPageDel" data-t="pad_page_delete">Sayfayı sil</button>
+        </div>
+        <div class="pad-editor mt">
+          <div>
+            <div class="pad-tools">
+              <button class="btn ghost small-btn" data-add="button" data-t="pad_w_button">Tuş</button>
+              <button class="btn ghost small-btn" data-add="stick" data-t="pad_w_stick">Analog</button>
+              <button class="btn ghost small-btn" data-add="trackpad" data-t="pad_w_trackpad">Dokunmatik yüzey</button>
+              <button class="btn ghost small-btn" data-add="slider" data-t="pad_w_slider">Kaydırıcı</button>
+            </div>
+            <div class="pad-screen" id="padScreen"><div class="pad-strip"></div></div>
+          </div>
+          <div class="pad-props" id="padProps"></div>
+        </div>
+        <div class="row gap mt">
+          <button class="btn primary" id="btnPadSave" data-t="pad_save">Kaydet ve konsola gönder</button>
+          <button class="btn ghost" id="btnPadRevert" data-t="pad_revert">Geri al</button>
+          <span class="muted small" id="padDirty"></span>
+        </div>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="toast hidden" id="toast"></div>
+
+<dialog id="formatDlg">
+  <form method="dialog">
+    <h2 data-t="format_title">Kartı formatla</h2>
+    <p data-t="format_desc"></p>
+    <p class="confirm-name" id="formatName"></p>
+    <input id="formatConfirm" type="text" autocomplete="off" spellcheck="false">
+    <div class="row gap end mt">
+      <button class="btn ghost" value="cancel" data-t="cancel">Vazgeç</button>
+      <button class="btn danger" id="btnFormatGo" value="go" data-t="format_go" disabled>Sil ve formatla</button>
+    </div>
+  </form>
+</dialog>
+
+<script src="/static/i18n.js"></script>
+<script src="/static/app.js"></script>
+</body>
+</html>

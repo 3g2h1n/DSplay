@@ -1,0 +1,958 @@
+<!doctype html>
+<html lang="tr" data-lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>DSplay</title>
+<meta name="description" content="DSplay: Nintendo DSi için Switch tarzında bir ana menü ve onu kuran DSplay Studio.">
+<!-- GitHub repository (kullanıcı/repo). Change this one line if the repository has another name. -->
+<meta name="dsplay-repo" content="3g2h1n/DSplay">
+<meta property="og:title" content="DSplay">
+<meta property="og:description" content="Nintendo DSi için Switch tarzında yeni bir ana menü.">
+<meta property="og:image" content="img/home.png">
+<meta name="theme-color" content="#00c3e3">
+<link rel="icon" href="img/logo.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #f3f5f8;
+  --bg2: #ffffff;
+  --panel: #ffffff;
+  --text: #121519;
+  --text2: #48515b;
+  --text3: #7a838e;
+  --line: #e0e5ea;
+  --accent: #00a3c2;
+  --accent-ink: #ffffff;
+  --glow: rgba(0, 195, 227, .35);
+  --blob1: #00c3e3;
+  --blob2: #ff4f6d;
+  --blob3: #7c5cff;
+  --device: #24272d;
+  --device2: #31353c;
+  --shadow: 0 20px 50px rgba(20, 30, 45, .14);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1114; --bg2: #15181c; --panel: #1b1f24; --text: #f2f4f6; --text2: #b6bec7; --text3: #808a95;
+    --line: #272c33; --accent: #00c3e3; --accent-ink: #05232a; --glow: rgba(0, 195, 227, .45);
+    --device: #0b0c0f; --device2: #1d2026; --shadow: 0 24px 60px rgba(0, 0, 0, .55);
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0f1114; --bg2: #15181c; --panel: #1b1f24; --text: #f2f4f6; --text2: #b6bec7; --text3: #808a95;
+  --line: #272c33; --accent: #00c3e3; --accent-ink: #05232a; --glow: rgba(0, 195, 227, .45);
+  --device: #0b0c0f; --device2: #1d2026; --shadow: 0 24px 60px rgba(0, 0, 0, .55);
+}
+* { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html { scroll-behavior: smooth; -webkit-tap-highlight-color: transparent; }
+body {
+  margin: 0; background: var(--bg); color: var(--text); overflow-x: hidden;
+  font: 16px/1.6 Inter, system-ui, -apple-system, "Segoe UI", sans-serif; -webkit-font-smoothing: antialiased;
+}
+html[data-lang="tr"] [lang="en"]:not(html) { display: none !important; }
+html[data-lang="en"] [lang="tr"]:not(html) { display: none !important; }
+a { color: var(--accent); text-decoration: none; }
+img { -webkit-user-drag: none; user-select: none; }
+.wrap { max-width: 1120px; margin: 0 auto; padding: 0 20px; }
+
+/* ---------- header ---------- */
+header.top {
+  position: fixed; inset: 0 0 auto 0; z-index: 50; transition: background .3s, border-color .3s, transform .35s;
+  border-bottom: 1px solid transparent;
+}
+header.top.solid { background: color-mix(in srgb, var(--bg) 82%, transparent); backdrop-filter: blur(14px) saturate(1.4); border-color: var(--line); }
+header.top.hidden { transform: translateY(-100%); }
+header.top .wrap { display: flex; align-items: center; gap: 12px; height: 62px; }
+header.top .brand { display: flex; align-items: center; gap: 10px; color: var(--text); font-weight: 800; font-size: 19px; letter-spacing: -.02em; }
+header.top .brand img { width: 30px; height: 30px; border-radius: 8px; transition: transform .5s cubic-bezier(.3,1.6,.5,1); }
+header.top .brand:hover img { transform: rotate(-12deg) scale(1.12); }
+header.top nav { margin-left: auto; display: flex; gap: 6px; align-items: center; }
+header.top nav a.nl { color: var(--text2); font-size: 14px; font-weight: 500; padding: 6px 10px; border-radius: 8px; transition: color .2s, background .2s; }
+header.top nav a.nl:hover { color: var(--text); background: color-mix(in srgb, var(--text) 7%, transparent); }
+.pill {
+  border: 1px solid var(--line); background: var(--panel); color: var(--text); border-radius: 999px; height: 34px;
+  padding: 0 13px; font: 600 13px Inter, sans-serif; cursor: pointer; display: inline-flex; align-items: center; gap: 6px;
+}
+.pill svg { width: 16px; height: 16px; }
+.progress { position: absolute; left: 0; bottom: -1px; height: 2px; width: 100%; transform-origin: 0 50%; transform: scaleX(0); background: linear-gradient(90deg, var(--blob1), var(--blob3), var(--blob2)); }
+@media (max-width: 760px) { header.top nav a.nl { display: none; } }
+
+/* ---------- hero ---------- */
+.hero { position: relative; padding: 130px 0 70px; overflow: hidden; min-height: 100vh; min-height: 100svh; display: flex; align-items: center; }
+.aurora { position: absolute; inset: -20%; z-index: 0; filter: blur(70px); opacity: .55; pointer-events: none; }
+.aurora i { position: absolute; width: 46vmax; height: 46vmax; border-radius: 50%; mix-blend-mode: normal; }
+.aurora i:nth-child(1) { background: var(--blob1); left: 40%; top: 5%; animation: drift1 18s ease-in-out infinite alternate; }
+.aurora i:nth-child(2) { background: var(--blob3); left: 60%; top: 35%; width: 34vmax; height: 34vmax; animation: drift2 22s ease-in-out infinite alternate; opacity: .7; }
+.aurora i:nth-child(3) { background: var(--blob2); left: 20%; top: 50%; width: 28vmax; height: 28vmax; animation: drift3 16s ease-in-out infinite alternate; opacity: .45; }
+@keyframes drift1 { to { transform: translate(-18%, 12%) scale(1.15); } }
+@keyframes drift2 { to { transform: translate(14%, -16%) scale(.9); } }
+@keyframes drift3 { to { transform: translate(22%, -10%) scale(1.2); } }
+.gridbg {
+  position: absolute; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
+  background-image: linear-gradient(var(--line) 1px, transparent 1px), linear-gradient(90deg, var(--line) 1px, transparent 1px);
+  background-size: 44px 44px; mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 70%);
+  -webkit-mask-image: radial-gradient(ellipse at 50% 40%, #000 20%, transparent 70%);
+}
+.hero .wrap { position: relative; z-index: 1; display: grid; grid-template-columns: 1.15fr .85fr; gap: 40px; align-items: center; width: 100%; }
+.badge {
+  display: inline-flex; align-items: center; gap: 8px; padding: 5px 12px 5px 6px; border-radius: 999px; font-size: 13px; font-weight: 600;
+  background: color-mix(in srgb, var(--panel) 75%, transparent); border: 1px solid var(--line); color: var(--text2); backdrop-filter: blur(6px);
+}
+.badge b { background: var(--accent); color: var(--accent-ink); border-radius: 999px; padding: 1px 8px; font-size: 12px; }
+.hero h1 { font-size: clamp(42px, 7vw, 76px); line-height: 1.0; letter-spacing: -.045em; margin: 18px 0 18px; font-weight: 900; }
+.hero h1 .w { display: inline-block; opacity: 0; transform: translateY(.5em) rotate(4deg); filter: blur(6px); animation: wordin .8s cubic-bezier(.2,.9,.25,1.1) forwards; }
+@keyframes wordin { to { opacity: 1; transform: none; filter: none; } }
+.grad { background: linear-gradient(100deg, var(--blob1), var(--blob3) 55%, var(--blob2)); -webkit-background-clip: text; background-clip: text; color: transparent; background-size: 200% 100%; animation: sheen 6s ease-in-out infinite alternate; }
+@keyframes sheen { to { background-position: 100% 0; } }
+.hero p.lead { font-size: clamp(17px, 2vw, 20px); color: var(--text2); margin: 0 0 30px; max-width: 32em; }
+.btns { display: flex; flex-wrap: wrap; gap: 12px; align-items: center; }
+.btn {
+  position: relative; overflow: hidden; display: inline-flex; align-items: center; gap: 10px; padding: 0 22px; height: 52px; border-radius: 999px;
+  font-weight: 700; font-size: 16px; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer;
+  transition: transform .25s cubic-bezier(.3,1.5,.5,1), box-shadow .25s; will-change: transform; user-select: none;
+}
+.btn svg { width: 20px; height: 20px; flex: none; }
+.btn:hover { box-shadow: 0 10px 26px -10px var(--glow); }
+.btn:active { transform: scale(.96); }
+.btn.primary { background: var(--accent); border-color: transparent; color: var(--accent-ink); box-shadow: 0 12px 34px -12px var(--glow); }
+.btn.primary::after {
+  content: ""; position: absolute; inset: 0; background: linear-gradient(110deg, transparent 30%, rgba(255,255,255,.45) 50%, transparent 70%);
+  transform: translateX(-120%); animation: shine 3.6s ease-in-out infinite 1.6s;
+}
+@keyframes shine { 0%, 60% { transform: translateX(-120%); } 100% { transform: translateX(120%); } }
+.btn .bsub { font-weight: 500; font-size: 12.5px; opacity: .75; }
+.btn .stack { display: flex; flex-direction: column; line-height: 1.1; align-items: flex-start; }
+.ripple { position: absolute; border-radius: 50%; transform: scale(0); background: currentColor; opacity: .25; animation: rip .6s ease-out forwards; pointer-events: none; }
+@keyframes rip { to { transform: scale(1); opacity: 0; } }
+.meta { margin-top: 20px; color: var(--text3); font-size: 14px; display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+.meta .stars { display: inline-flex; gap: 6px; align-items: center; }
+.meta svg { width: 15px; height: 15px; }
+
+/* the DSi: two halves, the lid opens on load, tilts with the pointer and swipes between screens */
+.stage { perspective: 1400px; display: flex; flex-direction: column; align-items: center; gap: 16px; touch-action: pan-y; }
+.dsi { width: min(320px, 74vw); transform-style: preserve-3d; transition: transform .25s ease-out; cursor: grab; }
+.dsi:active { cursor: grabbing; }
+.half { background: linear-gradient(160deg, var(--device2), var(--device)); border-radius: 20px; padding: 13px; box-shadow: var(--shadow); position: relative; }
+.half.lid { border-radius: 20px 20px 10px 10px; transform-origin: 50% 100%; transform: rotateX(-92deg); animation: lidopen 1.3s cubic-bezier(.25,1.25,.4,1) .35s forwards; }
+.half.base { border-radius: 10px 10px 22px 22px; margin-top: 5px; opacity: 0; transform: translateY(30px); animation: basein .8s cubic-bezier(.2,.9,.3,1) .1s forwards; }
+@keyframes lidopen { to { transform: rotateX(0deg); } }
+@keyframes basein { to { opacity: 1; transform: none; } }
+.scr { aspect-ratio: 4 / 3; border-radius: 4px; background: #000; position: relative; overflow: hidden; }
+.scr span { position: absolute; inset: 0; background-size: 100% 200%; image-rendering: pixelated; transition: opacity .5s ease, transform .5s ease; }
+.lid .scr span { background-position: 0 0; }
+.base .scr span { background-position: 0 100%; }
+.scr span.out { opacity: 0; transform: scale(1.04); }
+.scr::after { content: ""; position: absolute; inset: 0; background: linear-gradient(135deg, rgba(255,255,255,.14), transparent 40%); pointer-events: none; }
+.lid .cam { position: absolute; top: 5px; left: 50%; width: 5px; height: 5px; margin-left: -2px; border-radius: 50%; background: #3a3f47; }
+.base .btnrow { display: flex; justify-content: space-between; padding: 9px 4px 0; }
+.base .btnrow i { width: 26px; height: 6px; border-radius: 3px; background: #3a3f47; display: block; }
+.dots { display: flex; gap: 8px; align-items: center; }
+.dots button { width: 8px; height: 8px; border-radius: 99px; border: 0; padding: 0; background: var(--text3); opacity: .4; cursor: pointer; transition: all .35s cubic-bezier(.3,1.5,.5,1); }
+.dots button.on { width: 26px; opacity: 1; background: var(--accent); }
+.caption { font-size: 14px; color: var(--text2); font-weight: 600; min-height: 1.6em; text-align: center; }
+.hint { font-size: 12px; color: var(--text3); display: flex; align-items: center; gap: 6px; }
+.hint svg { width: 16px; height: 16px; animation: nudge 1.8s ease-in-out infinite; }
+@keyframes nudge { 50% { transform: translateX(6px); } }
+.scrolldown { position: absolute; left: 50%; bottom: 22px; z-index: 1; width: 26px; height: 42px; margin-left: -13px; border: 2px solid var(--text3); border-radius: 14px; opacity: .6; }
+.scrolldown::after { content: ""; position: absolute; left: 50%; top: 8px; width: 4px; height: 8px; margin-left: -2px; border-radius: 2px; background: var(--text3); animation: wheel 1.6s ease-in-out infinite; }
+@keyframes wheel { 0% { transform: translateY(0); opacity: 1; } 100% { transform: translateY(14px); opacity: 0; } }
+@media (max-width: 860px) {
+  .hero { padding-top: 100px; min-height: 0; }
+  .hero .wrap { grid-template-columns: 1fr; gap: 50px; }
+  .scrolldown { display: none; }
+}
+
+/* ---------- marquee ---------- */
+.marquee { border-block: 1px solid var(--line); background: var(--bg2); overflow: hidden; padding: 18px 0; position: relative; }
+.marquee .track { display: flex; gap: 46px; width: max-content; animation: marq 32s linear infinite; }
+.marquee:hover .track { animation-play-state: paused; }
+.marquee span { font-weight: 800; font-size: 20px; letter-spacing: -.02em; color: var(--text3); white-space: nowrap; display: flex; align-items: center; gap: 46px; }
+.marquee span::after { content: "✦"; color: var(--accent); font-size: 14px; }
+@keyframes marq { to { transform: translateX(-50%); } }
+
+/* ---------- sections ---------- */
+section { padding: 96px 0; position: relative; }
+section.alt { background: var(--bg2); border-block: 1px solid var(--line); }
+.kicker { font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); margin-bottom: 10px; }
+h2 { font-size: clamp(32px, 5vw, 52px); line-height: 1.05; letter-spacing: -.035em; margin: 0 0 14px; font-weight: 850; }
+.sub { color: var(--text2); margin: 0 0 44px; max-width: 44em; font-size: 17px; }
+
+/* reveal on scroll */
+.rv { opacity: 0; transform: translateY(36px); transition: opacity .8s cubic-bezier(.2,.8,.2,1), transform .8s cubic-bezier(.2,.8,.2,1); transition-delay: var(--d, 0s); }
+.rv.l { transform: translateX(-50px); }
+.rv.r { transform: translateX(50px); }
+.rv.z { transform: scale(.9); }
+.rv.in { opacity: 1; transform: none; }
+
+/* stats */
+.stats { display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.stat { text-align: center; padding: 26px 10px; border-radius: 20px; background: var(--panel); border: 1px solid var(--line); }
+.stat b { display: block; font-size: clamp(36px, 5vw, 54px); font-weight: 900; letter-spacing: -.04em; line-height: 1; color: var(--text); font-variant-numeric: tabular-nums; }
+.stat span { color: var(--text2); font-size: 14px; }
+@media (max-width: 700px) { .stats { grid-template-columns: repeat(2, 1fr); } }
+
+/* features */
+.feature { display: grid; grid-template-columns: auto 1fr; gap: 56px; align-items: center; margin: 0 0 100px; }
+.feature:last-of-type { margin-bottom: 40px; }
+.feature.rev { grid-template-columns: 1fr auto; }
+.feature.rev .shots { order: 2; }
+.shots { display: flex; gap: 16px; perspective: 1200px; }
+.mini { width: 200px; background: linear-gradient(160deg, var(--device2), var(--device)); border-radius: 18px; padding: 11px; box-shadow: var(--shadow); transition: transform .5s cubic-bezier(.3,1.3,.5,1); cursor: zoom-in; }
+.mini img { display: block; width: 100%; height: auto; image-rendering: pixelated; border-radius: 4px; background: #000; }
+.shots .mini:nth-child(1) { transform: rotateY(10deg) rotateZ(-2deg); }
+.shots .mini:nth-child(2) { transform: rotateY(-10deg) rotateZ(2deg) translateY(24px); }
+.shots .mini:hover { transform: translateY(-10px) scale(1.04); z-index: 2; }
+.feature h3 { font-size: clamp(24px, 3vw, 32px); margin: 0 0 12px; letter-spacing: -.025em; line-height: 1.15; }
+.feature p { color: var(--text2); margin: 0 0 14px; }
+.feature ul { margin: 0; padding: 0; list-style: none; color: var(--text2); }
+.feature li { margin: 9px 0; padding-left: 30px; position: relative; }
+.feature li::before {
+  content: ""; position: absolute; left: 0; top: 4px; width: 18px; height: 18px; border-radius: 6px;
+  background: color-mix(in srgb, var(--accent) 18%, transparent) url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%2300a3c2' stroke-width='3.2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12.5l4.5 4.5L19 7.5'/%3E%3C/svg%3E") center / 12px no-repeat;
+}
+.feature li b { color: var(--text); }
+@media (max-width: 860px) {
+  .feature, .feature.rev { grid-template-columns: 1fr; gap: 34px; margin-bottom: 72px; }
+  .feature.rev .shots { order: 0; }
+  .shots { justify-content: center; }
+  .mini { width: 42vw; max-width: 200px; }
+}
+
+/* spotlight cards */
+.grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 16px; }
+.card {
+  position: relative; background: var(--panel); border: 1px solid var(--line); border-radius: 20px; padding: 22px 22px 20px; overflow: hidden;
+  transition: transform .4s cubic-bezier(.3,1.4,.5,1), border-color .3s;
+}
+.card::before {
+  content: ""; position: absolute; inset: 0; opacity: 0; transition: opacity .3s; pointer-events: none;
+  background: radial-gradient(320px circle at var(--mx, 50%) var(--my, 50%), var(--glow), transparent 60%);
+}
+.card:hover { transform: translateY(-4px); border-color: color-mix(in srgb, var(--accent) 50%, var(--line)); }
+.card:hover::before { opacity: .55; }
+.card > * { position: relative; }
+.card h4 { margin: 0 0 6px; font-size: 17px; letter-spacing: -.01em; }
+.card p { margin: 0; color: var(--text2); font-size: 14.5px; }
+.card .ic { width: 42px; height: 42px; border-radius: 12px; display: grid; place-items: center; margin-bottom: 14px; background: color-mix(in srgb, var(--accent) 15%, transparent); color: var(--accent); }
+.card .ic svg { width: 22px; height: 22px; }
+.card .beta { font-size: 11px; font-weight: 800; letter-spacing: .06em; color: var(--blob2); border: 1px solid currentColor; border-radius: 6px; padding: 0 5px; margin-left: 6px; vertical-align: 2px; }
+
+/* gallery carousel */
+.gal-head { display: flex; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.arrows { display: flex; gap: 8px; margin-bottom: 44px; }
+.arrows button { width: 46px; height: 46px; border-radius: 50%; border: 1px solid var(--line); background: var(--panel); color: var(--text); cursor: pointer; display: grid; place-items: center; transition: transform .2s; }
+.arrows button:active { transform: scale(.9); }
+.arrows svg { width: 20px; height: 20px; }
+.gallery {
+  display: flex; gap: 22px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 10px max(20px, calc((100vw - 1120px) / 2 + 20px)) 30px;
+  scrollbar-width: none; cursor: grab; overscroll-behavior-x: contain;
+}
+.gallery::-webkit-scrollbar { display: none; }
+.gallery.drag { cursor: grabbing; scroll-snap-type: none; }
+.gallery.drag * { pointer-events: none; }
+.slide { flex: none; width: 230px; scroll-snap-align: center; text-align: center; }
+.slide .mini { width: 100%; cursor: zoom-in; transform: none; }
+.slide .mini:hover { transform: translateY(-8px); }
+.slide figcaption { margin-top: 14px; font-weight: 700; font-size: 15px; }
+.slide small { display: block; color: var(--text3); font-size: 13px; font-weight: 500; }
+@media (max-width: 600px) { .slide { width: 62vw; } .arrows { display: none; } }
+
+/* lightbox: swipe sideways for the next one, down to close, pinch-free double tap to zoom */
+.lb { position: fixed; inset: 0; z-index: 100; display: grid; place-items: center; background: rgba(5, 8, 12, 0); pointer-events: none; transition: background .3s; touch-action: none; }
+.lb.open { background: rgba(5, 8, 12, .88); pointer-events: auto; backdrop-filter: blur(8px); }
+.lb img { max-height: 86vh; max-width: 92vw; height: 86vh; width: auto; aspect-ratio: 2 / 3; object-fit: contain; image-rendering: pixelated; border-radius: 10px; opacity: 0; transform: scale(.85); transition: opacity .3s, transform .35s cubic-bezier(.3,1.3,.5,1); }
+.lb.open img { opacity: 1; transform: none; }
+.lb img.dragging { transition: none; }
+.lb .lbcap { position: absolute; bottom: max(18px, env(safe-area-inset-bottom)); left: 0; right: 0; text-align: center; color: #fff; font-weight: 600; opacity: 0; transition: opacity .3s; }
+.lb.open .lbcap { opacity: 1; }
+.lb .x, .lb .nav { position: absolute; border: 0; background: rgba(255,255,255,.12); color: #fff; width: 46px; height: 46px; border-radius: 50%; cursor: pointer; display: grid; place-items: center; opacity: 0; transition: opacity .3s; }
+.lb.open .x, .lb.open .nav { opacity: 1; }
+.lb .x { top: 16px; right: 16px; }
+.lb .nav.p { left: 16px; top: 50%; margin-top: -23px; }
+.lb .nav.n { right: 16px; top: 50%; margin-top: -23px; }
+.lb svg { width: 22px; height: 22px; }
+@media (max-width: 600px) { .lb .nav { display: none; } }
+
+/* systems */
+.systems { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 12px; }
+.sys { display: flex; gap: 14px; align-items: center; padding: 16px 18px; border-radius: 16px; background: var(--panel); border: 1px solid var(--line); transition: transform .3s cubic-bezier(.3,1.4,.5,1); }
+.sys:hover { transform: scale(1.03); }
+.sys .chip { flex: none; width: 46px; height: 46px; border-radius: 12px; display: grid; place-items: center; font-weight: 900; font-size: 13px; color: #fff; letter-spacing: -.02em; }
+.sys b { display: block; font-size: 15px; }
+.sys small { color: var(--text3); font-size: 13px; }
+
+/* steps */
+.steps { display: grid; gap: 14px; counter-reset: s; }
+.step {
+  counter-increment: s; position: relative; padding: 20px 22px 20px 78px; border-radius: 18px; background: var(--panel); border: 1px solid var(--line); color: var(--text2);
+}
+.step::before {
+  content: counter(s); position: absolute; left: 20px; top: 18px; width: 38px; height: 38px; border-radius: 12px; display: grid; place-items: center;
+  font-weight: 900; font-size: 17px; color: var(--accent-ink); background: var(--accent);
+}
+.step b { color: var(--text); }
+code { font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; font-size: 13.5px; background: color-mix(in srgb, var(--accent) 13%, transparent); padding: 2px 7px; border-radius: 6px; color: var(--text); }
+.copy { border: 0; background: none; color: var(--accent); cursor: pointer; padding: 0 4px; vertical-align: -3px; }
+.copy svg { width: 16px; height: 16px; }
+
+/* terminal */
+.term { border-radius: 18px; overflow: hidden; background: #0b0d10; border: 1px solid #23272e; box-shadow: var(--shadow); max-width: 760px; }
+.term .bar { display: flex; gap: 7px; padding: 12px 14px; background: #15181d; }
+.term .bar i { width: 11px; height: 11px; border-radius: 50%; background: #ff5f57; }
+.term .bar i:nth-child(2) { background: #febc2e; }
+.term .bar i:nth-child(3) { background: #28c840; }
+.term pre { margin: 0; padding: 18px 20px 22px; color: #d7dde4; font: 14px/1.75 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace; min-height: 220px; white-space: pre-wrap; overflow-x: auto; }
+.term .p { color: #00c3e3; }
+.term .c { color: #6f7b88; }
+.term .ok { color: #28c840; }
+.caret { display: inline-block; width: 8px; height: 1.1em; background: #00c3e3; vertical-align: -3px; animation: blink 1s steps(1) infinite; }
+@keyframes blink { 50% { opacity: 0; } }
+
+/* final call */
+.cta { text-align: center; overflow: hidden; }
+.cta h2 { max-width: 14em; margin: 0 auto 16px; }
+.cta .sub { margin: 0 auto 34px; }
+.cta .btns { justify-content: center; }
+.cta .ring { position: absolute; left: 50%; top: 50%; width: 900px; height: 900px; margin: -450px; border-radius: 50%; border: 1px solid var(--line); pointer-events: none; animation: pulse 6s ease-out infinite; opacity: 0; }
+.cta .ring:nth-child(2) { animation-delay: 2s; }
+.cta .ring:nth-child(3) { animation-delay: 4s; }
+@keyframes pulse { 0% { transform: scale(.3); opacity: .9; } 100% { transform: scale(1.1); opacity: 0; } }
+.cta .wrap { position: relative; }
+
+footer { padding: 40px 0 60px; color: var(--text3); font-size: 14px; border-top: 1px solid var(--line); }
+footer p { margin: 6px 0; max-width: 62em; }
+footer .row { display: flex; gap: 12px; align-items: center; margin-bottom: 14px; }
+footer .row img { width: 28px; height: 28px; border-radius: 7px; }
+
+.toast { position: fixed; left: 50%; bottom: 26px; transform: translate(-50%, 40px); opacity: 0; background: var(--text); color: var(--bg); padding: 10px 18px; border-radius: 999px; font-weight: 600; font-size: 14px; z-index: 120; transition: all .35s cubic-bezier(.3,1.4,.5,1); pointer-events: none; }
+.toast.show { transform: translate(-50%, 0); opacity: 1; }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .rv { opacity: 1; transform: none; }
+}
+</style>
+</head>
+<body>
+<script>
+  (function () {
+    var l = null;
+    try { l = localStorage.getItem("dsplay-lang"); } catch (e) {}
+    if (l !== "tr" && l !== "en") l = (navigator.language || "tr").slice(0, 2) === "tr" ? "tr" : "en";
+    document.documentElement.setAttribute("data-lang", l);
+    document.documentElement.lang = l;
+  })();
+</script>
+
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="gh" viewBox="0 0 16 16"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.013 8.013 0 0016 8c0-4.42-3.58-8-8-8z"/></symbol>
+  <symbol id="dl" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M12 4v11m0 0l-4.5-4.5M12 15l4.5-4.5M5 19.5h14"/></symbol>
+  <symbol id="star" viewBox="0 0 24 24"><path fill="currentColor" d="M12 2.8l2.8 5.8 6.3.9-4.6 4.4 1.1 6.3L12 17.2l-5.6 3 1.1-6.3L2.9 9.5l6.3-.9z"/></symbol>
+  <symbol id="arrL" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="arrR" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="xx" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" d="M6 6l12 12M18 6L6 18"/></symbol>
+  <symbol id="cp" viewBox="0 0 24 24"><g fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2.5"/><path d="M16 8V6a2 2 0 00-2-2H6a2 2 0 00-2 2v8a2 2 0 002 2h2"/></g></symbol>
+  <symbol id="swipe" viewBox="0 0 24 24"><path fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" d="M4 12h14m0 0l-4-4m4 4l-4 4"/></symbol>
+</svg>
+
+<header class="top" id="top">
+  <div class="wrap">
+    <a class="brand" href="#"><img src="img/logo.png" alt="">DSplay</a>
+    <nav>
+      <a class="nl" href="#ozellikler"><span lang="tr">Özellikler</span><span lang="en">Features</span></a>
+      <a class="nl" href="#galeri"><span lang="tr">Galeri</span><span lang="en">Gallery</span></a>
+      <a class="nl" href="#studio">Studio</a>
+      <a class="nl" href="#kurulum"><span lang="tr">Kurulum</span><span lang="en">Install</span></a>
+      <a class="pill repo-link" href="#" target="_blank" rel="noopener"><svg><use href="#gh"/></svg><span class="star-n">GitHub</span></a>
+      <button class="pill" id="langbtn" type="button">EN</button>
+    </nav>
+  </div>
+  <div class="progress" id="progress"></div>
+</header>
+
+<section class="hero">
+  <div class="aurora"><i></i><i></i><i></i></div>
+  <div class="gridbg"></div>
+  <div class="wrap">
+    <div>
+      <span class="badge"><b class="ver">v3.2.0</b><span lang="tr">Fotoğraflar, Wi-Fi, hızlı dönüş</span><span lang="en">Photos, Wi-Fi, fast return</span></span>
+      <h1 lang="tr" class="split">Nintendo DSi için <span class="grad">yeni bir ana menü.</span></h1>
+      <h1 lang="en" class="split">A new home menu <span class="grad">for the Nintendo DSi.</span></h1>
+      <p class="lead rv" style="--d:.5s" lang="tr">Switch'ten esinlenmiş hızlı ve sade bir menü. DS oyunları, DSiWare ve eski konsol oyunları tek yerde. Kartı bilgisayardaki DSplay Studio birkaç tıkla hazırlar.</p>
+      <p class="lead rv" style="--d:.5s" lang="en">A fast, clean menu inspired by the Switch. DS games, DSiWare and retro games in one place, and DSplay Studio sets up the card in a few clicks.</p>
+      <div class="btns rv" style="--d:.65s">
+        <a class="btn primary dl-link" href="#" target="_blank" rel="noopener">
+          <svg><use href="#dl"/></svg>
+          <span class="stack"><span lang="tr">GitHub'dan indir</span><span lang="en">Download on GitHub</span><span class="bsub dl-sub">DSplay-3.2.0.zip</span></span>
+        </a>
+        <a class="btn repo-link" href="#" target="_blank" rel="noopener"><svg><use href="#gh"/></svg><span lang="tr">Kaynak kod</span><span lang="en">Source code</span></a>
+      </div>
+      <div class="meta rv" style="--d:.8s">
+        <span lang="tr">Yapan: <b>3g2h1n</b></span><span lang="en">Made by <b>3g2h1n</b></span>
+        <span class="stars" hidden><svg><use href="#star"/></svg><b class="star-c">0</b></span>
+        <span lang="tr">Ücretsiz ve açık kaynak</span><span lang="en">Free and open source</span>
+      </div>
+    </div>
+    <div class="stage" id="stage">
+      <div class="dsi" id="dsi">
+        <div class="half lid"><i class="cam"></i><div class="scr" id="scrTop"></div></div>
+        <div class="half base"><div class="scr" id="scrBot"></div><div class="btnrow"><i></i><i></i></div></div>
+      </div>
+      <div class="caption" id="heroCap"></div>
+      <div class="dots" id="heroDots"></div>
+      <div class="hint"><svg><use href="#swipe"/></svg><span lang="tr">Kaydır ya da dokun</span><span lang="en">Swipe or tap</span></div>
+    </div>
+  </div>
+  <div class="scrolldown"></div>
+</section>
+
+<div class="marquee" aria-hidden="true">
+  <div class="track" id="marq">
+    <span>Nintendo DS</span><span>DSiWare</span><span>Game Boy Advance</span><span>Game Boy Color</span><span>NES</span><span>Super Nintendo</span><span>Mega Drive</span><span>Master System</span><span>Game Gear</span><span>Homebrew</span>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat rv z" style="--d:0s"><b data-count="8">0</b><span lang="tr">sistem</span><span lang="en">systems</span></div>
+      <div class="stat rv z" style="--d:.08s"><b data-count="4">0</b><span lang="tr">profil, ayrı kayıtlar</span><span lang="en">profiles, separate saves</span></div>
+      <div class="stat rv z" style="--d:.16s"><b data-count="6">0</b><span lang="tr">dil</span><span lang="en">languages</span></div>
+      <div class="stat rv z" style="--d:.24s"><b data-count="2740" data-plus="1">0</b><span lang="tr">otomatik test</span><span lang="en">automated tests</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="ozellikler">
+  <div class="wrap">
+    <div class="kicker rv"><span lang="tr">Konsolda</span><span lang="en">On the console</span></div>
+    <h2 class="rv"><span lang="tr">Her şey bir dokunuş uzağında.</span><span lang="en">Everything one tap away.</span></h2>
+    <p class="sub rv" lang="tr">Ekran görüntüleri DSplay'in kendi simülatöründen; oyunlar ve fotoğraflar örnek. Büyütmek için dokun.</p>
+    <p class="sub rv" lang="en">Screenshots come from DSplay's own simulator; the games and photos are samples. Tap to enlarge.</p>
+
+    <div class="feature">
+      <div class="shots rv l">
+        <div class="mini" data-shot="login"><img src="img/login.png" alt="" width="256" height="384" loading="lazy"></div>
+        <div class="mini" data-shot="all"><img src="img/all.png" alt="" width="256" height="384" loading="lazy"></div>
+      </div>
+      <div class="rv r">
+        <div class="kicker"><span lang="tr">Ana ekran</span><span lang="en">Home</span></div>
+        <h3><span lang="tr">Profiller, kutucuklar, tek dokunuş</span><span lang="en">Profiles, tiles, one tap</span></h3>
+        <ul lang="tr">
+          <li>4 profile kadar: her birinin <b>kendi kayıtları</b>, rengi, resmi, duvar kağıdı ve şifresi</li>
+          <li>Tüm Oyunlar: sistem sekmeleri, favoriler, kendi klasörlerin ve arama</li>
+          <li>Hareketli DSi simgeleri, takılı oyun kartı ve kutu resmi</li>
+          <li>Japonca ya da Çince adlar "????" yerine okunur bir adla görünür</li>
+        </ul>
+        <ul lang="en">
+          <li>Up to 4 profiles, each with <b>its own saves</b>, colour, picture, wallpaper and code</li>
+          <li>All Software: system tabs, favourites, your own folders and search</li>
+          <li>Animated DSi icons, the inserted game card and its box art</li>
+          <li>Japanese or Chinese titles get a readable name instead of "????"</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature rev">
+      <div class="shots rv r">
+        <div class="mini" data-shot="photomenu"><img src="img/photomenu.png" alt="" width="256" height="384" loading="lazy"></div>
+        <div class="mini" data-shot="saver"><img src="img/saver.png" alt="" width="256" height="384" loading="lazy"></div>
+      </div>
+      <div class="rv l">
+        <div class="kicker"><span lang="tr">Fotoğraflar</span><span lang="en">Photos</span></div>
+        <h3><span lang="tr">Görüntüleyiciden çok daha fazlası</span><span lang="en">Much more than a viewer</span></h3>
+        <ul lang="tr">
+          <li>Tümü, favoriler ve <b>her ay için bir albüm</b></li>
+          <li><b>Ayarla:</b> kırp; duvar kağıdı, profil resmi, açılış ekranı, oyun kapağı ya da klasör resmi yap</li>
+          <li><b>Ekran koruyucu:</b> fotoğraflar yavaşça kayar, altta saat durur</li>
+          <li><b>Şarjda fotoğraf çerçevesi</b> ve büyük saatin arkasında <b>günün fotoğrafı</b></li>
+        </ul>
+        <ul lang="en">
+          <li>All, favourites and <b>one album per month</b></li>
+          <li><b>Use as:</b> crop into a wallpaper, profile picture, boot screen, game cover or folder picture</li>
+          <li><b>Screensaver:</b> photos glide by slowly, with the clock below</li>
+          <li><b>Photo frame while charging</b> and a <b>photo of the day</b> behind the big clock</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature">
+      <div class="shots rv l">
+        <div class="mini" data-shot="settings"><img src="img/settings.png" alt="" width="256" height="384" loading="lazy"></div>
+        <div class="mini" data-shot="wifi"><img src="img/wifi.png" alt="" width="256" height="384" loading="lazy"></div>
+      </div>
+      <div class="rv r">
+        <div class="kicker"><span lang="tr">Ayarlar</span><span lang="en">Settings</span></div>
+        <h3><span lang="tr">Beş sekmede her şey</span><span lang="en">Everything in five tabs</span></h3>
+        <ul lang="tr">
+          <li>L / R ile sekmeler arasında geç: Profil, Görünüm, Ses ve ekran, Oyunlar, Sistem</li>
+          <li><b>Wi-Fi:</b> yakındaki ağları bul, şifreyi yaz, hemen dene; bağlanamazsa uyarı çıkar</li>
+          <li>Ana ekrandaki düğmeleri seç: Kumanda, Yakındakiler, Fotoğraflar, Güç</li>
+          <li>5 noktalı dokunmatik ayarı, temalar, duvar kağıdını sıfırla</li>
+        </ul>
+        <ul lang="en">
+          <li>Switch tabs with L / R: Profile, Look, Sound &amp; screen, Games, System</li>
+          <li><b>Wi-Fi:</b> find networks, type the password, test it at once; a dialog helps when it fails</li>
+          <li>Choose the home buttons: controller, Nearby, Photos, Power</li>
+          <li>5-point touch calibration, themes, wallpaper reset</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="feature rev">
+      <div class="shots rv r">
+        <div class="mini" data-shot="options"><img src="img/options.png" alt="" width="256" height="384" loading="lazy"></div>
+        <div class="mini" data-shot="power"><img src="img/power.png" alt="" width="256" height="384" loading="lazy"></div>
+      </div>
+      <div class="rv l">
+        <div class="kicker"><span lang="tr">Oyunlar</span><span lang="en">Games</span></div>
+        <h3><span lang="tr">Kayıtların her zaman güvende</span><span lang="en">Your saves are always safe</span></h3>
+        <ul lang="tr">
+          <li>Her oyuna <b>3 kayıt yuvası</b> ve otomatik yedek; silinen oyunun kaydı kenara alınır</li>
+          <li><b>DSiWare:</b> Unlaunch ya da nds-bootstrap ile açılır, kayıtlar profile özel</li>
+          <li>POWER tuşu: Kapat, Yeniden başlat, DSi Menüsü; ses ve parlaklıkta canlı gösterge</li>
+          <li>Oyundan çıkınca animasyonsuz, <b>doğrudan kendi ana ekranına</b></li>
+        </ul>
+        <ul lang="en">
+          <li><b>3 save slots</b> per game and automatic backups; a deleted game's save is kept aside</li>
+          <li><b>DSiWare:</b> started through Unlaunch or nds-bootstrap, saves kept per profile</li>
+          <li>POWER button: Turn off, Restart, DSi Menu; live volume and brightness indicator</li>
+          <li>Leaving a game takes you <b>straight back to your home screen</b></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card rv" style="--d:0s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="2.5" y="7" width="19" height="11" rx="5.5"/><path d="M7.5 10.5v4M5.5 12.5h4"/><circle cx="16" cy="11.5" r=".6" fill="currentColor"/><circle cx="18" cy="13.5" r=".6" fill="currentColor"/></svg></div><h4><span lang="tr">PC kumandası</span><span lang="en">PC controller</span></h4><p lang="tr">DSi, Wi-Fi üzerinden bilgisayara kumanda olur; düzenini Studio'da çiz.</p><p lang="en">The DSi becomes a controller for your computer over Wi-Fi; draw its layout in Studio.</p></div>
+      <div class="card rv" style="--d:.08s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M4 8h16l-1.5 12h-13z"/><path d="M8.5 8a3.5 3.5 0 017 0"/></svg></div><h4><span lang="tr">Mağaza</span><span lang="en">Store</span><span class="beta">BETA</span></h4><p lang="tr">Ücretsiz homebrew oyunlar ve araçlar, Wi-Fi ile konsola.</p><p lang="en">Free homebrew games and tools, sent to the console over Wi-Fi.</p></div>
+      <div class="card rv" style="--d:.16s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="9" cy="9" r="3.2"/><path d="M3.5 19c.8-3 3-4.5 5.5-4.5s4.7 1.5 5.5 4.5"/><path d="M16 6.5a3 3 0 010 5M18.5 4a6.5 6.5 0 010 10"/></svg></div><h4><span lang="tr">Yakındakiler</span><span lang="en">Nearby</span><span class="beta">BETA</span></h4><p lang="tr">Aynı ağdaki DSplay'ler profil kartı ve fotoğraf paylaşır.</p><p lang="en">DSplay consoles on the same network swap profile cards and photos.</p></div>
+      <div class="card rv" style="--d:.24s"><div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg></div><h4><span lang="tr">Sesler</span><span lang="en">Sounds</span></h4><p lang="tr">DSplay'in kendi sesleri; klasik paket ya da kendi WAV'ların Studio'dan.</p><p lang="en">DSplay's own sounds; a classic pack or your own WAV files via Studio.</p></div>
+    </div>
+  </div>
+</section>
+
+<section id="galeri" style="padding-bottom:60px">
+  <div class="wrap gal-head">
+    <div>
+      <div class="kicker rv"><span lang="tr">Galeri</span><span lang="en">Gallery</span></div>
+      <h2 class="rv"><span lang="tr">Kaydırarak gez.</span><span lang="en">Swipe through it.</span></h2>
+      <p class="sub rv" lang="tr">Parmağınla ya da fareyle sürükle, büyütmek için dokun.</p>
+      <p class="sub rv" lang="en">Drag with your finger or mouse, tap to enlarge.</p>
+    </div>
+    <div class="arrows rv"><button type="button" id="galPrev" aria-label="Previous"><svg><use href="#arrL"/></svg></button><button type="button" id="galNext" aria-label="Next"><svg><use href="#arrR"/></svg></button></div>
+  </div>
+  <div class="gallery rv" id="gallery"></div>
+</section>
+
+<section class="alt" id="studio">
+  <div class="wrap">
+    <div class="kicker rv"><span lang="tr">Bilgisayarda</span><span lang="en">On your computer</span></div>
+    <h2 class="rv">DSplay Studio</h2>
+    <p class="sub rv" lang="tr">Tarayıcıda açılan kurulum aracı. Python 3.8+ dışında bir şey gerektirmez; Windows, macOS ve Linux'ta çalışır.</p>
+    <p class="sub rv" lang="en">The setup tool that opens in your browser. Needs nothing but Python 3.8+; runs on Windows, macOS and Linux.</p>
+    <div class="grid">
+      <div class="card rv" style="--d:0s"><h4><span lang="tr">Tek tuşla kurulum</span><span lang="en">One-click install</span></h4><p lang="tr">DSplay, nds-bootstrap ve emülatörler; önceki menü yedeklenir.</p><p lang="en">DSplay, nds-bootstrap and emulators; the previous menu is backed up.</p></div>
+      <div class="card rv" style="--d:.06s"><h4><span lang="tr">Oyunlar ve kapaklar</span><span lang="en">Games and covers</span></h4><p lang="tr">Sürükle bırak; kutu resimleri inip konsol için paketlenir.</p><p lang="en">Drag and drop; box art is downloaded and packed for the console.</p></div>
+      <div class="card rv" style="--d:.12s"><h4><span lang="tr">Profiller ve temalar</span><span lang="en">Profiles and themes</span></h4><p lang="tr">Profil resmi, duvar kağıdı, kendi açılış ekranın ve sesin.</p><p lang="en">Profile pictures, wallpapers, your own boot screen and sound.</p></div>
+      <div class="card rv" style="--d:.18s"><h4><span lang="tr">Kayıt yedekleri</span><span lang="en">Save backups</span></h4><p lang="tr">Tüm kayıtları ya da kartın tamamını yedekle, geri yükle.</p><p lang="en">Back up all saves or the whole card, and restore them.</p></div>
+      <div class="card rv" style="--d:.24s"><h4><span lang="tr">Fotoğraf albümleri</span><span lang="en">Photo albums</span></h4><p lang="tr">Bir klasör seç; fotoğraflar küçültülüp albüm olarak karta gider.</p><p lang="en">Pick a folder; photos are resized and copied as an album.</p></div>
+      <div class="card rv" style="--d:.3s"><h4><span lang="tr">Kablosuz aktarım</span><span lang="en">Wireless transfer</span></h4><p lang="tr">Kartı çıkarmadan oyun ve dosya gönder.</p><p lang="en">Send games and files without removing the card.</p></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker rv"><span lang="tr">Uyumluluk</span><span lang="en">Compatibility</span></div>
+    <h2 class="rv"><span lang="tr">Çalıştırılabilen sistemler</span><span lang="en">Supported systems</span></h2>
+    <p class="sub rv" lang="tr">Pakette oyun yoktur; yalnızca sahip olduğun oyunların yedeklerini kullan.</p>
+    <p class="sub rv" lang="en">No games are included; only use backups of games you own.</p>
+    <div class="systems">
+      <div class="sys rv" style="--d:0s"><div class="chip" style="background:#3a7bd5">DS</div><div><b>Nintendo DS / DSi</b><small>nds-bootstrap · Unlaunch</small></div></div>
+      <div class="sys rv" style="--d:.05s"><div class="chip" style="background:#00a3c2">DSi</div><div><b>DSiWare</b><small>Unlaunch · nds-bootstrap</small></div></div>
+      <div class="sys rv" style="--d:.1s"><div class="chip" style="background:#6a4fd8">GBA</div><div><b>Game Boy Advance</b><small>GBARunner2</small></div></div>
+      <div class="sys rv" style="--d:.15s"><div class="chip" style="background:#7a9a2e">GB</div><div><b>Game Boy / Color</b><small>GameYob</small></div></div>
+      <div class="sys rv" style="--d:.2s"><div class="chip" style="background:#c7343b">NES</div><div><b>NES / Famicom</b><small>nesDS</small></div></div>
+      <div class="sys rv" style="--d:.25s"><div class="chip" style="background:#7d6ea8">SNES</div><div><b>Super Nintendo</b><small>SNEmulDS</small></div></div>
+      <div class="sys rv" style="--d:.3s"><div class="chip" style="background:#222">MD</div><div><b>Mega Drive / Genesis</b><small>PicoDriveTWL · jEnesisDS</small></div></div>
+      <div class="sys rv" style="--d:.35s"><div class="chip" style="background:#d9452b">SMS</div><div><b>Master System / Game Gear</b><small>S8DS</small></div></div>
+    </div>
+  </div>
+</section>
+
+<section class="alt" id="kurulum">
+  <div class="wrap">
+    <div class="kicker rv"><span lang="tr">Başla</span><span lang="en">Get started</span></div>
+    <h2 class="rv"><span lang="tr">Dört adımda kurulum</span><span lang="en">Install in four steps</span></h2>
+    <p class="sub rv" lang="tr">Unlaunch kurulu bir DSi ve FAT32 biçimli bir SD kart yeterli.</p>
+    <p class="sub rv" lang="en">All you need is a DSi with Unlaunch and a FAT32 SD card.</p>
+    <div class="steps">
+      <div class="step rv" style="--d:0s"><span lang="tr"><b>İndir ve aç.</b> GitHub'daki son sürümün zip'ini indir, bir klasöre çıkar.</span><span lang="en"><b>Download and unzip.</b> Get the latest release zip from GitHub and extract it.</span></div>
+      <div class="step rv" style="--d:.08s"><span lang="tr"><b>Studio'yu başlat.</b> Windows'ta <code>DSplay Studio (Windows).bat</code>, macOS'ta <code>DSplay Studio.command</code>, Linux'ta <code>./dsplay_studio.sh</code><button class="copy" data-copy="./dsplay_studio.sh" aria-label="Copy"><svg><use href="#cp"/></svg></button></span><span lang="en"><b>Start Studio.</b> <code>DSplay Studio (Windows).bat</code> on Windows, <code>DSplay Studio.command</code> on macOS, <code>./dsplay_studio.sh</code> on Linux<button class="copy" data-copy="./dsplay_studio.sh" aria-label="Copy"><svg><use href="#cp"/></svg></button></span></div>
+      <div class="step rv" style="--d:.16s"><span lang="tr"><b>Kartı hazırla.</b> SD kartını seç, <b>Kur / Güncelle</b>'ye bas, oyunlarını sürükle bırak.</span><span lang="en"><b>Prepare the card.</b> Pick your SD card, press <b>Install / Update</b>, drop in your games.</span></div>
+      <div class="step rv" style="--d:.24s"><span lang="tr"><b>Unlaunch'ı ayarla.</b> A + B basılıyken aç: <b>OPTIONS → NO BUTTON →</b> <code>sd:/BOOT.NDS</code>, <b>SAVE &amp; EXIT</b>. Artık her açılışta DSplay gelir.</span><span lang="en"><b>Set up Unlaunch.</b> Hold A + B while switching on: <b>OPTIONS → NO BUTTON →</b> <code>sd:/BOOT.NDS</code>, <b>SAVE &amp; EXIT</b>. DSplay now starts every time.</span></div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="kicker rv"><span lang="tr">Geliştirenler için</span><span lang="en">For developers</span></div>
+    <h2 class="rv"><span lang="tr">C, Python ve bolca test</span><span lang="en">C, Python and plenty of tests</span></h2>
+    <p class="sub rv" lang="tr">devkitPro, libnds2 ve calico ile yazıldı. DSplay kendi ARM7 programını taşır: POWER tuşu, kapatma, ses / parlaklık göstergesi ve oyundan dönüş ondan.</p>
+    <p class="sub rv" lang="en">Written with devkitPro, libnds2 and calico. DSplay carries its own ARM7 program for the POWER button, turning off, the volume / brightness indicator and returning from games.</p>
+    <div class="term rv z"><div class="bar"><i></i><i></i><i></i></div><pre id="term"></pre></div>
+  </div>
+</section>
+
+<section class="alt cta">
+  <div class="ring"></div><div class="ring"></div><div class="ring"></div>
+  <div class="wrap">
+    <h2 class="rv"><span lang="tr">DSi'ına yeni bir hayat ver.</span><span lang="en">Give your DSi a new life.</span></h2>
+    <p class="sub rv" lang="tr">Ücretsiz. Kayıtlarına dokunmaz. İstediğin an eski menüne dönebilirsin.</p>
+    <p class="sub rv" lang="en">Free. Leaves your saves alone. Go back to your old menu any time.</p>
+    <div class="btns rv">
+      <a class="btn primary dl-link" href="#" target="_blank" rel="noopener"><svg><use href="#dl"/></svg><span class="stack"><span lang="tr">GitHub'dan indir</span><span lang="en">Download on GitHub</span><span class="bsub dl-sub">DSplay-3.2.0.zip</span></span></a>
+      <a class="btn repo-link star-btn" href="#" target="_blank" rel="noopener"><svg><use href="#star"/></svg><span lang="tr">Yıldız ver</span><span lang="en">Star it</span></a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="row"><img src="img/logo.png" alt=""><b style="color:var(--text)">DSplay</b><span>· 3g2h1n · 2026</span></div>
+    <p lang="tr">devkitPro, calico, dswifi, nds-bootstrap, TWiLight Menu++, GBARunner2, stb_image, TJpgDec, Universal-DB ve Inter yazı tipi üzerine kuruludur; her biri kendi lisansıyla dağıtılır. Claude (Anthropic) yardımıyla geliştirildi.</p>
+    <p lang="en">Built on devkitPro, calico, dswifi, nds-bootstrap, TWiLight Menu++, GBARunner2, stb_image, TJpgDec, Universal-DB and the Inter typeface; each under its own licence. Developed with help from Claude (Anthropic).</p>
+    <p lang="tr">Nintendo DSi ve Nintendo Switch, Nintendo'nun ticari markalarıdır. Bu proje Nintendo ile bağlantılı değildir; Nintendo'ya ait resim, ses ya da logo, oyun veya BIOS içermez.</p>
+    <p lang="en">Nintendo DSi and Nintendo Switch are trademarks of Nintendo. This project is not affiliated with Nintendo and contains no Nintendo images, sounds, logos, games or BIOS.</p>
+  </div>
+</footer>
+
+<div class="lb" id="lb" aria-hidden="true">
+  <img id="lbImg" alt="">
+  <button class="x" id="lbX" aria-label="Close"><svg><use href="#xx"/></svg></button>
+  <button class="nav p" id="lbP" aria-label="Previous"><svg><use href="#arrL"/></svg></button>
+  <button class="nav n" id="lbN" aria-label="Next"><svg><use href="#arrR"/></svg></button>
+  <div class="lbcap" id="lbCap"></div>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function () {
+  var root = document.documentElement;
+  var reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function lang() { return root.getAttribute("data-lang"); }
+  function $(s, c) { return (c || document).querySelector(s); }
+  function $$(s, c) { return Array.prototype.slice.call((c || document).querySelectorAll(s)); }
+
+  // ---- screenshots and their names ----
+  var SHOTS = [
+    ["home", "Ana ekran", "Home"],
+    ["login", "Kim oynuyor?", "Who's playing?"],
+    ["all", "Tüm Oyunlar", "All Software"],
+    ["search", "Arama", "Search"],
+    ["options", "Oyun seçenekleri", "Game options"],
+    ["photos", "Fotoğraflar", "Photos"],
+    ["photomenu", "Ayarla menüsü", "Use as… menu"],
+    ["crop", "Kırpma", "Cropping"],
+    ["saver", "Ekran koruyucu", "Screensaver"],
+    ["settings", "Ayarlar", "Settings"],
+    ["wifi", "Wi-Fi", "Wi-Fi"],
+    ["homeedit", "Ana ekranı düzenle", "Edit home"],
+    ["power", "Güç menüsü", "Power menu"]
+  ];
+  function nameOf(id) { for (var i = 0; i < SHOTS.length; i++) if (SHOTS[i][0] === id) return SHOTS[i][lang() === "tr" ? 1 : 2]; return ""; }
+  function idx(id) { for (var i = 0; i < SHOTS.length; i++) if (SHOTS[i][0] === id) return i; return 0; }
+  SHOTS.forEach(function (s) { var im = new Image(); im.src = "img/" + s[0] + ".png"; });
+
+  // ---- language ----
+  var langbtn = $("#langbtn");
+  function setLangBtn() { langbtn.textContent = lang() === "tr" ? "EN" : "TR"; }
+  langbtn.addEventListener("click", function () {
+    var l = lang() === "tr" ? "en" : "tr";
+    root.setAttribute("data-lang", l); root.lang = l;
+    try { localStorage.setItem("dsplay-lang", l); } catch (e) {}
+    setLangBtn(); heroShow(heroI, true); buildGallery(); splitWords();
+  });
+  setLangBtn();
+
+  // ---- headline words fly in one by one ----
+  function splitWords() {
+    $$("h1.split").forEach(function (h) {
+      if (!h.dataset.src) h.dataset.src = h.innerHTML;
+      var tmp = document.createElement("div"); tmp.innerHTML = h.dataset.src;
+      var out = "", n = 0;
+      tmp.childNodes.forEach(function (node) {
+        var isEl = node.nodeType === 1, words = node.textContent.split(/\s+/).filter(Boolean);
+        var cls = isEl ? " " + node.className : "";
+        var part = words.map(function (w) { return '<span class="w' + cls + '" style="animation-delay:' + (0.08 * n++ + 0.1) + 's">' + w + "</span>"; }).join(" ");
+        out += (out ? " " : "") + part;
+      });
+      h.innerHTML = out;
+    });
+  }
+  splitWords();
+
+  // ---- GitHub: repository, latest release, stars ----
+  var repo = ($('meta[name="dsplay-repo"]') || {}).content || "";
+  var gh = location.hostname.match(/^([^.]+)\.github\.io$/i), seg = location.pathname.split("/").filter(Boolean)[0];
+  if (gh && seg) repo = gh[1] + "/" + seg;
+  var base = "https://github.com/" + repo;
+  $$(".repo-link").forEach(function (a) { a.href = base; });
+  $$(".dl-link").forEach(function (a) { a.href = base + "/releases/latest"; });
+  if (repo && window.fetch) {
+    fetch("https://api.github.com/repos/" + repo + "/releases/latest").then(function (r) { return r.ok ? r.json() : null; }).then(function (rel) {
+      if (!rel) return;
+      var zip = (rel.assets || []).filter(function (a) { return /\.zip$/i.test(a.name); })[0];
+      if (rel.tag_name) $$(".ver").forEach(function (e) { e.textContent = rel.tag_name; });
+      if (zip) {
+        $$(".dl-link").forEach(function (a) { a.href = zip.browser_download_url; });
+        $$(".dl-sub").forEach(function (e) { e.textContent = zip.name + " · " + (zip.size / 1048576).toFixed(1) + " MB"; });
+      }
+    }).catch(function () {});
+    fetch("https://api.github.com/repos/" + repo).then(function (r) { return r.ok ? r.json() : null; }).then(function (d) {
+      if (!d || typeof d.stargazers_count !== "number") return;
+      $(".stars").hidden = false; countTo($(".star-c"), d.stargazers_count, 1200);
+      $(".star-n").textContent = "★ " + d.stargazers_count;
+    }).catch(function () {});
+  }
+
+  // ---- header: solid after scrolling, hides going down, reading progress ----
+  var hdr = $("#top"), prog = $("#progress"), lastY = 0;
+  function onScroll() {
+    var y = window.scrollY, h = document.documentElement.scrollHeight - innerHeight;
+    hdr.classList.toggle("solid", y > 20);
+    hdr.classList.toggle("hidden", y > lastY && y > 400 && !lbOpen);
+    lastY = y;
+    prog.style.transform = "scaleX(" + (h > 0 ? y / h : 0) + ")";
+  }
+  addEventListener("scroll", onScroll, { passive: true }); onScroll();
+
+  // ---- reveal on scroll, counters, terminal ----
+  function countTo(el, to, ms) {
+    if (reduce) { el.textContent = to.toLocaleString() + (el.dataset.plus ? "+" : ""); return; }
+    var t0 = performance.now();
+    (function step(t) {
+      var k = Math.min(1, (t - t0) / ms), e = 1 - Math.pow(1 - k, 4);
+      el.textContent = Math.round(to * e).toLocaleString() + (el.dataset.plus && k === 1 ? "+" : "");
+      if (k < 1) requestAnimationFrame(step);
+    })(t0);
+  }
+  var io = new IntersectionObserver(function (es) {
+    es.forEach(function (e) {
+      if (!e.isIntersecting) return;
+      e.target.classList.add("in"); io.unobserve(e.target);
+      $$("[data-count]", e.target).forEach(function (c) { countTo(c, +c.dataset.count, 1600); });
+      if (e.target.classList.contains("term")) typeTerm();
+    });
+  }, { threshold: 0.15, rootMargin: "0px 0px -40px 0px" });
+  $$(".rv").forEach(function (el) { io.observe(el); });
+
+  var termDone = false;
+  function typeTerm() {
+    if (termDone) return; termDone = true;
+    var pre = $("#term");
+    var L = [
+      ["$ ", "make", ""], ["", "  ARM9 + ARM7 → assets/payloads/BOOT.NDS", "c"],
+      ["$ ", "make test", ""], ["", "  ✓ 2633 passed", "ok"],
+      ["$ ", "make test-studio", ""], ["", "  ✓ ALL OK (107) · safety OK", "ok"],
+      ["$ ", "make sim", ""], ["", "  build/sim <sd> <script> <prefix>  →  256×384 screenshots", "c"],
+      ["$ ", "make studio", ""], ["", "  DSplay Studio → http://localhost:8770", "c"]
+    ];
+    if (reduce) {
+      pre.innerHTML = L.map(function (l) { return (l[0] ? '<span class="p">' + l[0] + "</span>" : "") + '<span class="' + l[2] + '">' + l[1] + "</span>"; }).join("\n");
+      return;
+    }
+    var i = 0, j = 0, html = "";
+    (function tick() {
+      if (i >= L.length) { pre.innerHTML = html + '<span class="p">$ </span><span class="caret"></span>'; return; }
+      var l = L[i];
+      if (l[0]) {
+        j++;
+        pre.innerHTML = html + '<span class="p">' + l[0] + "</span>" + l[1].slice(0, j) + '<span class="caret"></span>';
+        if (j < l[1].length) return setTimeout(tick, 45 + Math.random() * 50);
+        html += '<span class="p">' + l[0] + "</span>" + l[1] + "\n"; i++; j = 0; setTimeout(tick, 380);
+      } else {
+        html += '<span class="' + l[2] + '">' + l[1] + "</span>\n"; i++; pre.innerHTML = html + '<span class="caret"></span>'; setTimeout(tick, 260);
+      }
+    })();
+  }
+
+  // ---- hero DSi: cycles screens, swipe / tap / dots, tilts with the pointer or the phone ----
+  var HERO = ["home", "all", "photos", "saver", "settings", "power"];
+  var top = $("#scrTop"), bot = $("#scrBot"), cap = $("#heroCap"), dotsEl = $("#heroDots"), heroI = 0, timer;
+  HERO.forEach(function (id, i) {
+    var b = document.createElement("button"); b.type = "button"; b.setAttribute("aria-label", id);
+    b.addEventListener("click", function () { heroShow(i); restart(); }); dotsEl.appendChild(b);
+  });
+  function layer(scr, id) {
+    var s = document.createElement("span"); s.style.backgroundImage = "url(img/" + id + ".png)"; s.className = "out";
+    scr.appendChild(s); s.offsetWidth; s.className = "";
+    var old = $$("span", scr); old.slice(0, -1).forEach(function (o) { o.className = "out"; setTimeout(function () { o.remove(); }, 600); });
+  }
+  function heroShow(i, keep) {
+    heroI = (i + HERO.length) % HERO.length;
+    if (!keep) { layer(top, HERO[heroI]); setTimeout(function () { layer(bot, HERO[heroI]); }, 90); }
+    cap.textContent = nameOf(HERO[heroI]);
+    $$("button", dotsEl).forEach(function (b, k) { b.classList.toggle("on", k === heroI); });
+  }
+  function restart() { clearInterval(timer); if (!reduce) timer = setInterval(function () { heroShow(heroI + 1); }, 3400); }
+  heroShow(0); restart();
+
+  var dsi = $("#dsi"), stage = $("#stage"), sx = null, sy = 0, moved = false;
+  dsi.addEventListener("pointerdown", function (e) { sx = e.clientX; sy = e.clientY; moved = false; });
+  addEventListener("pointerup", function (e) {
+    if (sx === null) return;
+    var dx = e.clientX - sx, dy = e.clientY - sy; sx = null;
+    if (Math.abs(dx) > 40 && Math.abs(dx) > Math.abs(dy)) heroShow(heroI + (dx < 0 ? 1 : -1));
+    else if (Math.abs(dx) < 8 && Math.abs(dy) < 8) heroShow(heroI + 1);
+    restart();
+  });
+  var fine = window.matchMedia("(pointer: fine)").matches;
+  if (!reduce && fine) {
+    stage.closest(".hero").addEventListener("pointermove", function (e) {
+      var r = dsi.getBoundingClientRect(), cx = (e.clientX - r.left - r.width / 2) / innerWidth, cy = (e.clientY - r.top - r.height / 2) / innerHeight;
+      dsi.style.transform = "rotateY(" + (cx * 24).toFixed(2) + "deg) rotateX(" + (-cy * 18).toFixed(2) + "deg)";
+    });
+    stage.closest(".hero").addEventListener("pointerleave", function () { dsi.style.transform = ""; });
+  }
+  if (!reduce && !fine && "DeviceOrientationEvent" in window) {
+    addEventListener("deviceorientation", function (e) {
+      if (e.gamma == null) return;
+      var gx = Math.max(-20, Math.min(20, e.gamma)), gy = Math.max(-20, Math.min(20, (e.beta || 45) - 45));
+      dsi.style.transform = "rotateY(" + gx * .8 + "deg) rotateX(" + -gy * .6 + "deg)";
+    });
+  }
+
+  // ---- marquee: double the content so it loops seamlessly ----
+  var mq = $("#marq"); mq.innerHTML += mq.innerHTML;
+
+  // ---- spotlight cards ----
+  $$(".card").forEach(function (c) {
+    c.addEventListener("pointermove", function (e) {
+      var r = c.getBoundingClientRect();
+      c.style.setProperty("--mx", e.clientX - r.left + "px"); c.style.setProperty("--my", e.clientY - r.top + "px");
+    });
+  });
+
+  // ---- ripple + magnetic buttons ----
+  $$(".btn").forEach(function (b) {
+    b.addEventListener("pointerdown", function (e) {
+      var r = b.getBoundingClientRect(), d = Math.max(r.width, r.height) * 2.2, s = document.createElement("span");
+      s.className = "ripple"; s.style.width = s.style.height = d + "px";
+      s.style.left = e.clientX - r.left - d / 2 + "px"; s.style.top = e.clientY - r.top - d / 2 + "px";
+      b.appendChild(s); setTimeout(function () { s.remove(); }, 650);
+    });
+    if (fine && !reduce) {
+      b.addEventListener("pointermove", function (e) {
+        var r = b.getBoundingClientRect();
+        b.style.transform = "translate(" + (e.clientX - r.left - r.width / 2) * .15 + "px," + (e.clientY - r.top - r.height / 2) * .25 + "px)";
+      });
+      b.addEventListener("pointerleave", function () { b.style.transform = ""; });
+    }
+  });
+
+  // ---- gallery: drag with the mouse, swipe on touch (native), arrows ----
+  var gal = $("#gallery");
+  function buildGallery() {
+    gal.innerHTML = SHOTS.map(function (s) {
+      return '<figure class="slide" style="margin:0"><div class="mini" data-shot="' + s[0] + '"><img src="img/' + s[0] + '.png" alt="" width="256" height="384" loading="lazy" draggable="false"></div>' +
+        "<figcaption>" + nameOf(s[0]) + "</figcaption></figure>";
+    }).join("");
+  }
+  buildGallery();
+  var gd = null;
+  gal.addEventListener("pointerdown", function (e) { if (e.pointerType !== "mouse") return; gd = { x: e.clientX, s: gal.scrollLeft, m: false }; });
+  addEventListener("pointermove", function (e) {
+    if (!gd) return;
+    var dx = e.clientX - gd.x;
+    if (Math.abs(dx) > 5) { gd.m = true; gal.classList.add("drag"); }
+    gal.scrollLeft = gd.s - dx;
+  });
+  addEventListener("pointerup", function () {
+    if (!gd) return;
+    var wasMoved = gd.m; gd = null;
+    if (wasMoved) {
+      gal.classList.remove("drag");
+      var w = $(".slide", gal).offsetWidth + 22; gal.scrollTo({ left: Math.round(gal.scrollLeft / w) * w, behavior: "smooth" });
+      gal.dataset.justDragged = "1"; setTimeout(function () { delete gal.dataset.justDragged; }, 50);
+    }
+  });
+  function galStep(d) { var w = $(".slide", gal).offsetWidth + 22; gal.scrollBy({ left: d * w * 2, behavior: "smooth" }); }
+  $("#galPrev").addEventListener("click", function () { galStep(-1); });
+  $("#galNext").addEventListener("click", function () { galStep(1); });
+
+  // ---- lightbox: swipe left / right for the next one, down to close; keys too ----
+  var lb = $("#lb"), lbImg = $("#lbImg"), lbCap = $("#lbCap"), lbI = 0, lbOpen = false;
+  function lbShow(i) {
+    lbI = (i + SHOTS.length) % SHOTS.length;
+    lbImg.src = "img/" + SHOTS[lbI][0] + ".png"; lbCap.textContent = nameOf(SHOTS[lbI][0]) + "  ·  " + (lbI + 1) + " / " + SHOTS.length;
+  }
+  function lbOpenAt(id) { lbShow(idx(id)); lb.classList.add("open"); lb.setAttribute("aria-hidden", "false"); lbOpen = true; document.body.style.overflow = "hidden"; }
+  function lbClose() { lb.classList.remove("open"); lb.setAttribute("aria-hidden", "true"); lbOpen = false; document.body.style.overflow = ""; lbImg.style.transform = ""; lbImg.style.opacity = ""; }
+  document.addEventListener("click", function (e) {
+    var m = e.target.closest(".mini[data-shot]");
+    if (!m || gal.dataset.justDragged) return;
+    lbOpenAt(m.dataset.shot);
+  });
+  $("#lbX").addEventListener("click", lbClose);
+  $("#lbP").addEventListener("click", function (e) { e.stopPropagation(); slideTo(-1); });
+  $("#lbN").addEventListener("click", function (e) { e.stopPropagation(); slideTo(1); });
+  addEventListener("keydown", function (e) {
+    if (!lbOpen) return;
+    if (e.key === "Escape") lbClose(); else if (e.key === "ArrowRight") slideTo(1); else if (e.key === "ArrowLeft") slideTo(-1);
+  });
+  function slideTo(d) {
+    if (reduce) { lbShow(lbI + d); return; }
+    lbImg.classList.remove("dragging");
+    lbImg.style.transform = "translateX(" + (-d * 60) + "px) scale(.92)"; lbImg.style.opacity = "0";
+    setTimeout(function () {
+      lbShow(lbI + d); lbImg.classList.add("dragging");
+      lbImg.style.transform = "translateX(" + (d * 60) + "px) scale(.92)";
+      lbImg.offsetWidth; lbImg.classList.remove("dragging"); lbImg.style.transform = ""; lbImg.style.opacity = "";
+    }, 160);
+  }
+  var ls = null;
+  lb.addEventListener("pointerdown", function (e) { if (e.target.closest("button")) return; ls = { x: e.clientX, y: e.clientY, ax: null }; lbImg.classList.add("dragging"); });
+  lb.addEventListener("pointermove", function (e) {
+    if (!ls) return;
+    var dx = e.clientX - ls.x, dy = e.clientY - ls.y;
+    if (!ls.ax && Math.hypot(dx, dy) > 8) ls.ax = Math.abs(dx) > Math.abs(dy) ? "x" : "y";
+    if (ls.ax === "x") lbImg.style.transform = "translateX(" + dx + "px) rotate(" + dx / 40 + "deg)";
+    if (ls.ax === "y" && dy > 0) { lbImg.style.transform = "translateY(" + dy + "px) scale(" + Math.max(.7, 1 - dy / 900) + ")"; lb.style.background = "rgba(5,8,12," + Math.max(.2, .88 - dy / 500) + ")"; }
+  });
+  lb.addEventListener("pointerup", function (e) {
+    if (!ls) return;
+    var dx = e.clientX - ls.x, dy = e.clientY - ls.y, ax = ls.ax; ls = null;
+    lbImg.classList.remove("dragging"); lb.style.background = "";
+    if (ax === "x" && Math.abs(dx) > 60) slideTo(dx < 0 ? 1 : -1);
+    else if (ax === "y" && dy > 110) lbClose();
+    else if (!ax && e.target === lb) lbClose();
+    else lbImg.style.transform = "";
+  });
+  var lastTap = 0;
+  lbImg.addEventListener("pointerup", function () {
+    var t = Date.now();
+    if (t - lastTap < 300) lbImg.style.transform = lbImg.style.transform ? "" : "scale(1.6)";
+    lastTap = t;
+  });
+
+  // ---- copy buttons ----
+  var toast = $("#toast"), tt;
+  function say(msg) { toast.textContent = msg; toast.classList.add("show"); clearTimeout(tt); tt = setTimeout(function () { toast.classList.remove("show"); }, 1600); }
+  $$(".copy").forEach(function (b) {
+    b.addEventListener("click", function () {
+      var txt = b.dataset.copy;
+      (navigator.clipboard ? navigator.clipboard.writeText(txt) : Promise.reject()).then(function () {
+        say(lang() === "tr" ? "Kopyalandı" : "Copied");
+      }).catch(function () { say(txt); });
+    });
+  });
+})();
+</script>
+</body>
+</html>
